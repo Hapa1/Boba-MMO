@@ -1,11 +1,18 @@
-import React, { Component } from "react";
+import React, { Component, useState } from "react";
 import Sketch from "react-p5";
 import '../App.css';
 
-const Canvas = ({bobaParams, setBobaParams}) => {
+const Canvas = ({
+    postXP, 
+    getBoba, 
+    bobaParams,
+    setUserXP,
+    userXP
 
-    const { sizeMultiplier, angleMultiplier } = bobaParams
 
+    }) => {
+    let sizeMultiplier = 1.4
+    let angleMultiplier = .2
     let x, y = 250, w, h;
     let yc, yr, wc, hc;
     let empty, full;
@@ -20,9 +27,10 @@ const Canvas = ({bobaParams, setBobaParams}) => {
     let newy = 40
     let targetY = 250
 
-    console.log(sizeMultiplier)
     const setup = (p5, canvasParentRef) => {
-        p5.createCanvas(250, 500).parent(canvasParentRef); // use parent to render canvas in this ref (without that p5 render this canvas outside your component)
+        p5.createCanvas(250, 500).parent(canvasParentRef);
+        
+         // use parent to render canvas in this ref (without that p5 render this canvas outside your component)
     };
 
     const reset = () => {
@@ -38,13 +46,15 @@ const Canvas = ({bobaParams, setBobaParams}) => {
         //else sip=true
         //y = y + 20
         targetY = targetY + getSpeed(new Date())
-        console.log(targetY)
         if(y > empty){
-            setBobaParams({
-                sizeMultiplier: Math.random() * (2.2 - 1.6) + 1.6,
-                height: 150,
-                angleMultiplier: .15
-            })
+            console.log('bobaParams.flavor.points',bobaParams.flavor.points)
+            console.log('bobaParams.size.pointsMultiplier',bobaParams.size.pointsMultiplier)
+            let points = bobaParams.flavor.points * bobaParams.size.pointsMultiplier
+
+            postXP(points)
+            console.log("points",points)
+            setUserXP(userXP + points)
+            getBoba()
         }
         //myTimeout = setTimeout(()=>stopConsume(),2000)
     }
@@ -60,8 +70,11 @@ const Canvas = ({bobaParams, setBobaParams}) => {
         }      
         
     }
+    
 
+    
     const draw = (p5) => {
+    if(bobaParams){
         p5.background(220);
 
         let yCon = p5.constrain(y,0,1000)
@@ -97,7 +110,8 @@ const Canvas = ({bobaParams, setBobaParams}) => {
         p5.vertex(x - w/2, empty);
         
         p5.endShape(p5.CLOSE);
-        p5.fill('#F6BCE4')
+
+        p5.fill(bobaParams.flavor.topHex)
         p5.ellipse(x, yc, wc, hc); //changing 
         
         p5.fill('black');
@@ -122,10 +136,12 @@ const Canvas = ({bobaParams, setBobaParams}) => {
         
 
         p5.noStroke();
-        p5.fill('#F3B2DB');
+        p5.fill(bobaParams.flavor.baseHex);
         p5.ellipse(x, empty, w, h); //bottom
-
+    }
     };
+
+    
 
     return (
     <div className="Canvas" onClick={consume}>
