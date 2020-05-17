@@ -1,31 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import Canvas from './components/Canvas'
-import { CircularProgress, LinearProgress, withStyles, makeStyles, Button, Chip} from '@material-ui/core';
+import { List, ListItem, ListItemAvatar, ListItemText, Divider, Box, Container, Card, CardContent, Typography, CircularProgress, LinearProgress, withStyles, makeStyles, Button, Chip} from '@material-ui/core';
 import GradeIcon from '@material-ui/icons/Grade';
 import Axios from 'axios';
 
-//const origin = 'http://localhost:5000'
-const origin = 'https://boba-mmo.herokuapp.com'
+const origin = 'http://localhost:5000'
+//const origin = 'https://boba-mmo.herokuapp.com'
 
 function App() {
 
   let done = false
 
   const [user, setUser] = useState('')
+  const [users, setUsers] = useState([])
   const [bobaList, setBobaList] = useState([])
   const [bobaParams, setBobaParams] = useState(null)
   const [userXP, setUserXP] = useState(null)
   const [userLevel, setUserLevel] = useState(null)
-
-  const initializeBoba = () => {
-      let myBoba = bobaList[bobaList.length-1]
-      let myBobaArr = bobaList
-      console.log(myBobaArr.pop())
-      return myBoba
-  }
-
- 
+  const [titleColor, setTitleColor] = useState(null)
 
   const getBoba = () => {
     let myBoba = bobaList.pop()
@@ -39,10 +32,16 @@ function App() {
 
   const fetchUser = async () => {
     let res = await Axios.get(origin + '/profile',{withCredentials: true})
-    console.log('fetching')
     setUser(res.data)
     setUserXP(res.data.xp)
     setUserLevel(res.data.level)
+    
+  }
+
+  const fetchUsers = async () => {
+    let res = await Axios.get(origin + '/users',{withCredentials: true})
+    console.log(res.data)
+    setUsers(res.data)
   }
 
   const fetchBoba = async () => {
@@ -50,6 +49,8 @@ function App() {
     setBobaParams(res.data.pop())
     setBobaList(res.data)
   }
+
+
 
   const postXP = async (xp) => {
     //var data = {
@@ -62,7 +63,7 @@ function App() {
     Axios.post(origin + '/postLevel', {}, {withCredentials: true})
   }
 
-  if(userXP > 200){
+  if(userXP >= 200){
     setUserLevel(userLevel+1)
     setUserXP(0)
     postLevel()
@@ -72,6 +73,7 @@ function App() {
   useEffect(() => {
     fetchUser()
     fetchBoba()
+    fetchUsers()
   }, [])
 
   const useStyles = makeStyles((theme) => ({
@@ -97,10 +99,17 @@ function App() {
     },
     FlavorColor: {
       backgroundColor: '#B5B5B5'
+    },
+    experienceBar: {
+      background: 'linear-gradient(90deg, #81D481 30%, #00aee7 90%)',
+      color: '#B5B5B5',
+      height: 10,
+    },
+    Level: {
+      fontWeight: 'bold',
+      fontSize: '24px',
     }
   }));
-
-  console.log(bobaList)
 
   const classes = useStyles();
 
@@ -132,29 +141,84 @@ function App() {
     }
   }
 
-  console.log()
+  const getClass = () => {
+    if(bobaParams){
+      return classes.FlavorColor
+    }
+  }
+
+  const getUsers = () => {
+    const usersList = users.map((myUser) =>
+    <div>
+      <ListItem>
+        <ListItemAvatar>
+          <Chip label={myUser.level} color="primary" className={classes.Level}/>
+        </ListItemAvatar>
+        <ListItemText primary={myUser.name}/>
+      </ListItem>
+      <Divider/>
+    </div>
+    );
+    
+    return <List>{usersList}</List>
+  }
+
+//<Button variant="contained" color="primary" href={origin + '/auth/facebook/'}>Login</Button>
+//<Button color="primary" href={origin + '/logout/'}>Logout</Button>
+  const getLanding = () => {
+    if(user){
+      return (
+        <div>
+          <Container maxWidth="sm">
+          <Box display="flex" justifyContent="center">
+            <Typography  color="primary" variant="h5">
+              <b>Level</b>
+            </Typography>
+            <Chip label={userLevel} color="primary" className={classes.Level}/>
+            <Button color="primary" href={origin + '/logout/'}>Logout</Button>
+          </Box>
+            
+          <Box>
+            <LinearProgress variant="determinate" value={userXP/200 * 100} className={classes.experienceBar}/>
+          </Box>
+            
+          </Container>
+            <Canvas 
+            
+            postXP={postXP} 
+            getBoba={getBoba} 
+            setBobaParams={setBobaParams} 
+            bobaParams={bobaParams}
+            userXP={userXP}
+            setUserXP={setUserXP}
+            setTitleColor={setTitleColor}
+            getRarity={getRarity}
+            getName={getName}
+            />
+          
+        </div>
+      )
+    } else {
+      return (
+        <Button variant="contained" color="primary" href={origin + '/auth/facebook/'}>Login</Button>
+      )
+    }
+  }
 
   return (
     <div className="App">
-      User: {user.name}
-      XP: {userXP}
-      Level: {userLevel}
-      {getName()}
-      {getRarity()}
-      <LinearProgress variant="determinate" value={userXP/200 * 100}/>
-      <Canvas 
-      postXP={postXP} 
-      getBoba={getBoba} 
-      setBobaParams={setBobaParams} 
-      bobaParams={bobaParams}
-      userXP={userXP}
-      setUserXP={setUserXP}
-      />
-      <Button variant="contained" color="primary" onClick={()=>{postXP()}}>ChangeMe</Button>
-      <Button variant="contained" color="primary" href={origin + '/auth/facebook/'}>Login</Button>
-      <Button variant="contained" color="primary" href={origin + '/logout/'}>Logout</Button>
+      {getLanding()}
+      <Box>
+        <Typography  color="primary" variant="h3">
+          Leaderboard
+        </Typography>
+      </Box>
+      <Box display="flex" justifyContent="center" Width="m">
+    
+        {getUsers()}
+      </Box>
     </div>
-    //{{origin} + 'auth/facebook'}
+
   );
 }
 

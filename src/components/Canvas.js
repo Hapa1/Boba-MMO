@@ -1,17 +1,25 @@
 import React, { Component, useState } from "react";
+import { Card, CardContent, Typography, CircularProgress, LinearProgress, withStyles, makeStyles, Button, Chip} from '@material-ui/core';
 import Sketch from "react-p5";
 import '../App.css';
 
 const Canvas = ({
+
     postXP, 
     getBoba, 
     bobaParams,
     setUserXP,
-    userXP
-
+    userXP,
+    getRarity,
+    getName
 
     }) => {
-    let sizeMultiplier = 1.4
+
+    const [color, setColor] = useState(null)
+    const [titleColor, setTitleColor] = useState(null)
+    const [boba, setBoba ] = useState(null)
+    
+    let sizeMultiplier
     let angleMultiplier = .2
     let x, y = 250, w, h;
     let yc, yr, wc, hc;
@@ -47,14 +55,12 @@ const Canvas = ({
         //y = y + 20
         targetY = targetY + getSpeed(new Date())
         if(y > empty){
-            console.log('bobaParams.flavor.points',bobaParams.flavor.points)
-            console.log('bobaParams.size.pointsMultiplier',bobaParams.size.pointsMultiplier)
             let points = bobaParams.flavor.points * bobaParams.size.pointsMultiplier
 
             postXP(points)
-            console.log("points",points)
             setUserXP(userXP + points)
             getBoba()
+            
         }
         //myTimeout = setTimeout(()=>stopConsume(),2000)
     }
@@ -63,7 +69,7 @@ const Canvas = ({
         if(timeStamps.length == 2){
             timeStamps.pop()
             timeStamps.unshift(date.getTime())
-            return 2500/(timeStamps[0]-timeStamps[timeStamps.length-1])
+            return 3500/(timeStamps[0]-timeStamps[timeStamps.length-1])
         } else {
             timeStamps.push(date.getTime())
             return 3
@@ -75,8 +81,11 @@ const Canvas = ({
     
     const draw = (p5) => {
     if(bobaParams){
-        p5.background(220);
-
+        setColor(bobaParams.flavor.backgroundHex)
+        setTitleColor(bobaParams.flavor.baseHex)
+        sizeMultiplier = bobaParams.size.sizeReal
+        p5.background(bobaParams.flavor.backgroundHex);
+        
         let yCon = p5.constrain(y,0,1000)
         
         x = p5.width / 2;
@@ -95,8 +104,6 @@ const Canvas = ({
         yr = angleMultiplier*((empty - yc)/100); // times .4375 to cap at .35
         wc = w + w*yr; //width of top of liquid
         hc = h + h*yr; //angle of top of liquid
-        //console.log(yr);
-        
 
 
         p5.noStroke();
@@ -144,9 +151,23 @@ const Canvas = ({
     
 
     return (
-    <div className="Canvas" onClick={consume}>
-        <Sketch setup={setup} draw={draw} />
+    <div>
+        <Card>
+            <CardContent>
+            <Typography gutterBottom variant="h5" component="h2">
+                <span style={{color:titleColor}}>{getName()}</span>
+            </Typography>
+                {getRarity()}
+            </CardContent>
+        </Card>
+        <div className="Canvas" style={{backgroundColor:color}} onClick={consume}>
+            <a href='/' onClick={(e)=>{e.preventDefault()}}>
+                <Sketch setup={setup} draw={draw} />
+            </a>
+            
+        </div>
     </div>
+    
     
     );
 }
