@@ -5,8 +5,8 @@ import { List, ListItem, ListItemAvatar, ListItemText, Divider, Box, Container, 
 import GradeIcon from '@material-ui/icons/Grade';
 import Axios from 'axios';
 
-const origin = 'http://localhost:5000'
-//const origin = 'https://boba-mmo.herokuapp.com'
+//const origin = 'http://localhost:5000'
+const origin = 'https://boba-mmo.herokuapp.com'
 
 function App() {
 
